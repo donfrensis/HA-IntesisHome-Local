@@ -2,7 +2,7 @@
   "domain": "intesishome",
   "name": "IntesisHome Local",
   "documentation": "https://www.home-assistant.io/integrations/intesishome",
-  "codeowners": ["@jnimmo"],
+  "codeowners": ["@donfrensis"],
   "requirements": ["pyintesishome==1.8.5"],
   "iot_class": "local_push",
   "loggers": ["pyintesishome"],
