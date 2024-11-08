@@ -1,0 +1,7 @@
+{
+    "name": "IntesisHome Local",
+    "domains": [
+        "climate"
+    ],
+    "render_readme": true
+}
