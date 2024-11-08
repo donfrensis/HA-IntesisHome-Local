@@ -88,6 +88,8 @@ MAP_STATE_ICONS = {
 
 MAX_RETRIES = 10
 MAX_WAIT_TIME = 300
+
+
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
@@ -149,6 +151,8 @@ async def async_setup_platform(
             controller.error_message,
         )
         await controller.stop()
+
+
 class IntesisAC(ClimateEntity):
     """Represents an Intesishome air conditioning device."""
 
@@ -225,9 +229,10 @@ class IntesisAC(ClimateEntity):
         try:
             await self._controller.connect()
         except IHConnectionError as ex:
-            _LOGGER.error("Exception connecting to IntesisHome Local: %s", ex)
+            _LOGGER.error("Exception connecting to IntesisHome: %s", ex)
             raise PlatformNotReady from ex
-@property
+
+    @property
     def name(self):
         """Return the name of the AC device."""
         return self._device_name
@@ -335,7 +340,8 @@ class IntesisAC(ClimateEntity):
             await self._controller.set_horizontal_vane(
                 self._device_id, swing_settings.hvane
             )
-async def async_update(self):
+
+    async def async_update(self):
         """Copy values from controller dictionary to climate device."""
         # Update values from controller's device dictionary
         self._connected = self._controller.is_connected
