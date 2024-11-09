@@ -10,9 +10,10 @@ jobs:
   validate:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v3"  # Scarica il codice del repository
+      - uses: "actions/setup-node@v3"
         with:
           node-version: 20
+      - uses: actions/checkout@v3  # Scarica il codice del repository
       - uses: "home-assistant/actions/hassfest@master"  # Esegue hassfest
       - uses: "hacs/action@main"  # Esegue la validazione HACS
         with:
