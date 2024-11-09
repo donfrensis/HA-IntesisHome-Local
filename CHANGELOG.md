@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1] - 2024-11-09
+### Changed
+- Changed domain from "intesishome" to "intesishome_local" to avoid conflicts with core integration
+
+### Fixed
+- Fixed manifest.json keys ordering
+- Fixed HACS validation issues
+
 ## [1.1.0] - 2024-11-09
 ### Added
 - Added connectivity sensor for each device

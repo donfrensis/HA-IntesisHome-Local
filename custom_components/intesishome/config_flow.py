@@ -17,7 +17,7 @@ from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-class IntesisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class IntesisConfigFlow(config_entries.ConfigFlow, domain="intesishome_local"):
     """Handle a config flow for IntesisHome Local."""
 
     VERSION = 1

@@ -1,5 +1,5 @@
 {
-  "domain": "intesishome",
+  "domain": "intesishome_local",
   "name": "IntesisHome Local",
   "codeowners": ["@donfrensis"],
   "config_flow": true,
@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/donfrensis/ha-intesishome-local/issues",
   "loggers": ["pyintesishome"],
   "requirements": ["pyintesishome==1.8.5"],
-  "version": "1.1.0"
+  "version": "1.1.1"
 }

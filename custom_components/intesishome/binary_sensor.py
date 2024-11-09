@@ -49,7 +49,7 @@ async def async_setup_entry(
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name="intesishome_connectivity",
+        name="intesishome_local_connectivity",
         update_method=async_check_connection,
         update_interval=timedelta(seconds=30),
     )
