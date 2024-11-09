@@ -9,6 +9,8 @@
 ### Changed
 - Updated device model structure
 - Improved state handling
+- Added dynamic model detection
+- Added configuration_url to device info
 
 ### Fixed
 - Various bug fixes and improvements
