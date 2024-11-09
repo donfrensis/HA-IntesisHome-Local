@@ -8,6 +8,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from pyintesishome import (
     IHAuthenticationError,
@@ -17,7 +18,7 @@ from pyintesishome import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "intesishome"
+DOMAIN = "intesishome_local"
 PLATFORMS = [Platform.CLIMATE, Platform.BINARY_SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -31,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry.data.get("username", ""),
             entry.data.get("password", ""),
             loop=hass.loop,
-            websession=hass.helpers.aiohttp_client.async_get_clientsession(hass),
+            websession=async_get_clientsession(hass),
         )
         
         await controller.poll_status()
@@ -53,7 +54,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         identifiers={(DOMAIN, controller.controller_id)},
         manufacturer="Intesis",
         name=entry.data.get(CONF_NAME, f"IntesisHome {controller.controller_id[-6:]}"),
-        # Prendiamo il modello dal controller se disponibile
         model=getattr(controller, "model", None),
         sw_version=getattr(controller, "version", None),
         configuration_url=f"http://{entry.data[CONF_HOST]}"
