@@ -1,5 +1,7 @@
 """Config flow for IntesisHome Local."""
 import logging
+import async_timeout
+import aiohttp
 
 from pyintesishome import (
     IHAuthenticationError,
@@ -22,11 +24,36 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain="intesishome_local"):
 
     VERSION = 1
 
+    async def _test_device_connection(self, host: str) -> bool:
+        """Test if the device is reachable."""
+        try:
+            async with async_timeout.timeout(2):
+                async with aiohttp.request('HEAD', f"http://{host}", raise_for_status=False) as response:
+                    return response.status == 200
+        except:
+            return False
+
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
+            # Test device connectivity first
+            if not await self._test_device_connection(user_input[CONF_HOST]):
+                errors["base"] = "cannot_connect"
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required(CONF_HOST): str,
+                            vol.Required(CONF_USERNAME): str,
+                            vol.Required(CONF_PASSWORD): str,
+                            vol.Optional(CONF_NAME): str,
+                        }
+                    ),
+                    errors=errors,
+                )
+
             try:
                 controller = IntesisHomeLocal(
                     user_input[CONF_HOST],
@@ -35,7 +62,11 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain="intesishome_local"):
                     loop=self.hass.loop,
                     websession=async_get_clientsession(self.hass),
                 )
-                await controller.poll_status()
+                try:
+                    await controller.poll_status()
+                except TypeError:
+                    _LOGGER.error("Failed to connect to device - no response")
+                    raise IHConnectionError("No response from device")
                 
                 if len(controller.get_devices()) == 0:
                     errors["base"] = "no_devices"
@@ -91,8 +122,10 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain="intesishome_local"):
 class CannotConnect(exceptions.HomeAssistantError):
     """Error to indicate we cannot connect."""
 
+
 class InvalidAuth(exceptions.HomeAssistantError):
     """Error to indicate there is invalid auth."""
+
 
 class NoDevices(exceptions.HomeAssistantError):
     """Error to indicate the account has no devices."""
