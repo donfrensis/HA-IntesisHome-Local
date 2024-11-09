@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 from random import randrange
 from typing import NamedTuple
 
@@ -85,6 +86,7 @@ MAP_STATE_ICONS = {
 
 MAX_RETRIES = 10
 MAX_WAIT_TIME = 300
+
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
@@ -108,7 +110,6 @@ async def async_setup_entry(
             ],
             update_before_add=True,
         )
-
 class IntesisAC(ClimateEntity):
     """Represents an Intesishome air conditioning device."""
 
@@ -132,15 +133,10 @@ class IntesisAC(ClimateEntity):
         # Set unique_id using the device's MAC address
         self._attr_unique_id = ih_device_id
         
-        # Device info for device registry
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, controller.controller_id)},
-            manufacturer="Intesis",
-            name=self._attr_name,
-            model=getattr(controller, "model", None),
-            sw_version=getattr(controller, "version", None),
-            configuration_url=f"http://{controller.host}"
-        )
+        # Device info for device registry - modificato per usare lo stesso ID del dispositivo
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, self._config_entry_id)},
+        }
 
         self._connected = False
         self._setpoint_step = 1.0
