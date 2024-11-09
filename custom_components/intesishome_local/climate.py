@@ -199,6 +199,7 @@ class IntesisAC(ClimateEntity):
             self._attr_hvac_modes.extend(mode_list)
         self._attr_hvac_modes.append(HVACMode.OFF)
 
+    # Nel metodo async_added_to_hass
     async def async_added_to_hass(self):
         """Subscribe to event updates."""
         _LOGGER.debug("Added climate device with state: %s", repr(self._ih_device))
@@ -206,8 +207,13 @@ class IntesisAC(ClimateEntity):
 
         try:
             await self._controller.connect()
-        except IHConnectionError as ex:
+        except (IHConnectionError, TypeError) as ex:
             _LOGGER.error("Exception connecting to IntesisHome: %s", ex)
+            self._connected = False
+            return  # Non solleviamo PlatformNotReady, permettiamo all'entità di esistere come non disponibile
+
+        except Exception as ex:  # Cattura altri errori inattesi
+            _LOGGER.error("Unexpected error connecting to IntesisHome: %s", ex)
             raise PlatformNotReady from ex
 
     @property

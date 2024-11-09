@@ -3,7 +3,7 @@ Simplified fork of the IntesisHome integration for Home Assistant
 
 *This project is a simplified fork of the original IntesisHome integration by @jnimmo. The original version supported various Intesis devices, while this fork focuses exclusively on local HTTP control for selected devices.*
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 This custom version exclusively supports local control via HTTP for selected devices.
 
