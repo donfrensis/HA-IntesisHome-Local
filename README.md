@@ -62,17 +62,6 @@ Each device provides:
 ## Important Notes
 If you are using the original version of the integration, completely remove it before installing this version. The two versions cannot coexist on the same system.
 
-## Changelog
-
-### 1.1.0
-- Added connectivity sensor for each device
-- Improved device registry handling
-- Fixed various bugs
-
-### 1.0.0
-- Initial release
-- Basic climate control functionality
-
 ## Credits and Support
 This integration is based on the excellent work done by @jnimmo on the original [IntesisHome Integration](https://github.com/jnimmo/hass-intesishome). 
 
