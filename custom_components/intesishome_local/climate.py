@@ -133,9 +133,14 @@ class IntesisAC(ClimateEntity):
         # Set unique_id using the device's MAC address
         self._attr_unique_id = ih_device_id
         
-        # Device info for device registry - modificato per usare lo stesso ID del dispositivo
+        # Device info for device registry - deve corrispondere esattamente a quello del binary sensor
         self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._config_entry_id)},
+            "identifiers": {(DOMAIN, controller.controller_id)},
+            "name": self._attr_name,
+            "manufacturer": "Intesis",
+            "model": getattr(controller, "model", None),
+            "sw_version": getattr(controller, "version", None),
+            "via_device": self._config_entry_id
         }
 
         self._connected = False
