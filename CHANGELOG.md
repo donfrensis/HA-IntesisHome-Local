@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.2] - 2024-11-09
+### Fixed
+- Fixed device connection error related to controller.host attribute
+- Fixed device_info structure to properly link climate and connectivity entities
+
 ## [1.1.1] - 2024-11-09
 ### Changed
 - Changed domain from "intesishome" to "intesishome_local" to avoid conflicts with core integration
