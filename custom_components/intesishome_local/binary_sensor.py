@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 import async_timeout
 import aiohttp
 from datetime import timedelta
@@ -39,11 +40,10 @@ async def async_setup_entry(
     async def async_check_connection():
         """Check if the device is reachable."""
         try:
-            async with async_timeout.timeout(5):
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f"http://{host}") as response:
-                        return response.status == 200
-        except (asyncio.TimeoutError, aiohttp.ClientError):
+            async with async_timeout.timeout(2):  # Timeout ridotto a 2 secondi
+                async with aiohttp.request('HEAD', f"http://{host}", raise_for_status=False) as response:
+                    return response.status == 200
+        except:  # Cattura qualsiasi errore
             return False
 
     coordinator = DataUpdateCoordinator(
@@ -87,15 +87,16 @@ class IntesisConnectivitySensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_unique_id = f"{controller.controller_id}_connectivity"
         self._attr_name = f"{name} Connectivity"
         self._host = host
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, controller.controller_id)},
+            "name": name,
+            "manufacturer": "Intesis",
+            "model": getattr(controller, "model", None),
+            "sw_version": getattr(controller, "version", None),
+            "via_device": self._config_entry_id
+        }
 
     @property
     def is_on(self) -> bool:
         """Return true if device is connected."""
         return self.coordinator.data
-
-    @property
-    def device_info(self):
-        """Return device information."""
-        return {
-            "identifiers": {(DOMAIN, self._config_entry_id)},
-        }
