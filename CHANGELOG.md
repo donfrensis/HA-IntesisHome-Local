@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.3] - 2024-11-09
+### Changed
+- Improved connectivity check to be more lightweight using HEAD requests
+- Fixed device and entity association structure
+- Unified device_info across climate and connectivity entities
+
+### Fixed
+- Fixed missing asyncio import in binary_sensor
+- Reduced connection overhead in connectivity checks
+- Fixed duplicate device creation
+
 ## [1.1.2] - 2024-11-09
 ### Fixed
 - Fixed device connection error related to controller.host attribute
