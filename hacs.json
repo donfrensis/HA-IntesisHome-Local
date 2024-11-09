@@ -1,10 +1,4 @@
 {
     "name": "IntesisHome Local",
-    "homeassistant": "2023.8.0",
-    "domains": [
-        "climate",
-        "binary_sensor"
-    ],
-    "render_readme": true,
-    "country": "IT"
+    "render_readme": true
 }
