@@ -1,4 +1,3 @@
-# pylint: disable=duplicate-code
 """Support for IntesisHome Local Smart AC Controllers."""
 from __future__ import annotations
 
@@ -31,26 +30,24 @@ from homeassistant.components.climate import (
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     CONF_HOST,
+    CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
     UnitOfTemperature,
 )
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class SwingSettings(NamedTuple):
     """Settings for swing mode."""
     vvane: str
     hvane: str
-
 
 MAP_IH_TO_HVAC_MODE = {
     "auto": HVACMode.HEAT_COOL,
@@ -88,106 +85,86 @@ MAP_STATE_ICONS = {
 
 MAX_RETRIES = 10
 MAX_WAIT_TIME = 300
-
-
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create climate entities from config flow."""
-    config = config_entry.data
-    if "controller" in hass.data[DOMAIN]:
-        controller = hass.data[DOMAIN]["controller"].pop(config_entry.unique_id)
-        ih_devices = controller.get_devices()
-        if ih_devices:
-            async_add_entities(
-                [
-                    IntesisAC(ih_device_id, device, controller)
-                    for ih_device_id, device in ih_devices.items()
-                ],
-                update_before_add=True,
-            )
-    else:
-        await async_setup_platform(hass, config, async_add_entities)
-
-
-async def async_setup_platform(
-    hass: core.HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None
-) -> None:
-    """Create the IntesisHome climate devices."""
-    ih_user = config.get(CONF_USERNAME)
-    ih_host = config.get(CONF_HOST)
-    ih_pass = config.get(CONF_PASSWORD)
-    websession = async_get_clientsession(hass)
-
-    controller = IntesisHomeLocal(
-        ih_host, ih_user, ih_pass, loop=hass.loop, websession=websession
-    )
-
-    try:
-        await controller.poll_status()
-    except IHAuthenticationError:
-        _LOGGER.error("Invalid username or password")
-        return
-    except IHConnectionError as ex:
-        _LOGGER.error("Error connecting to the IntesisHome local device")
-        raise PlatformNotReady from ex
+    controller = hass.data[DOMAIN][config_entry.entry_id]["controller"]
+    config = hass.data[DOMAIN][config_entry.entry_id]["config"]
 
     if ih_devices := controller.get_devices():
         async_add_entities(
             [
-                IntesisAC(ih_device_id, device, controller)
+                IntesisAC(
+                    config_entry.entry_id,
+                    ih_device_id, 
+                    device, 
+                    controller,
+                    config.get(CONF_NAME)
+                )
                 for ih_device_id, device in ih_devices.items()
             ],
             update_before_add=True,
         )
-    else:
-        _LOGGER.error(
-            "Error getting device list from IntesisHome local API: %s",
-            controller.error_message,
-        )
-        await controller.stop()
-
 
 class IntesisAC(ClimateEntity):
     """Represents an Intesishome air conditioning device."""
 
-    def __init__(self, ih_device_id, ih_device, controller) -> None:
+    def __init__(
+        self, 
+        config_entry_id: str,
+        ih_device_id: str, 
+        ih_device: dict, 
+        controller: IntesisBase,
+        device_name: str | None = None
+    ) -> None:
         """Initialize the thermostat."""
-        self._controller: IntesisBase = controller
-        self._device_id: str = ih_device_id
-        self._ih_device: dict[str, dict[str, object]] = ih_device
-        self._device_name: str = ih_device.get("name")
-        self._device_type: str = controller.device_type
-        self._connected: bool = False
-        self._setpoint_step: float = 1.0
-        self._current_temp: float = None
-        self._max_temp: float = None
+        self._config_entry_id = config_entry_id
+        self._controller = controller
+        self._device_id = ih_device_id
+        self._ih_device = ih_device
+        
+        # Use custom name if provided, otherwise use device ID
+        self._attr_name = device_name or f"IntesisHome {ih_device_id[-6:]}"
+        
+        # Set unique_id using the device's MAC address
+        self._attr_unique_id = ih_device_id
+        
+        # Device info for device registry
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, controller.controller_id)},
+            manufacturer="Intesis",
+            name=self._attr_name,
+            model=getattr(controller, "model", None),
+            sw_version=getattr(controller, "version", None),
+            configuration_url=f"http://{controller.host}"
+        )
+
+        self._connected = False
+        self._setpoint_step = 1.0
+        self._current_temp = None
+        self._max_temp = None
         self._attr_hvac_modes = []
-        self._min_temp: int = None
-        self._target_temp: float = None
-        self._outdoor_temp: float = None
-        self._hvac_mode: HVACMode = None
-        self._preset: str = None
-        self._preset_list: list[str] = [PRESET_ECO, PRESET_COMFORT, PRESET_BOOST]
-        self._run_hours: int = None
+        self._min_temp = None
+        self._target_temp = None
+        self._outdoor_temp = None
+        self._hvac_mode = None
+        self._preset = None
+        self._preset_list = [PRESET_ECO, PRESET_COMFORT, PRESET_BOOST]
+        self._run_hours = None
         self._rssi = None
-        self._swing_list: list[str] = [SWING_OFF]
-        self._vvane: str = None
-        self._hvane: str = None
-        self._power: bool = False
+        self._swing_list = [SWING_OFF]
+        self._vvane = None
+        self._hvane = None
+        self._power = False
         self._fan_speed = None
         self._power_consumption_heat = None
         self._power_consumption_cool = None
         
         # Inizializzazione delle feature supportate
         self._attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
-
-        # Aggiunta esplicita del supporto turn_on/turn_off
         self._attr_supported_features |= ClimateEntityFeature.TURN_ON
         self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
 
@@ -235,7 +212,7 @@ class IntesisAC(ClimateEntity):
     @property
     def name(self):
         """Return the name of the AC device."""
-        return self._device_name
+        return self._attr_name
 
     @property
     def temperature_unit(self):
@@ -285,7 +262,7 @@ class IntesisAC(ClimateEntity):
             await self.async_set_hvac_mode(hvac_mode)
 
         if temperature := kwargs.get(ATTR_TEMPERATURE):
-            _LOGGER.debug("Setting %s to %s degrees", self._device_type, temperature)
+            _LOGGER.debug("Setting %s to %s degrees", self._device_id, temperature)
             await self._controller.set_temperature(self._device_id, temperature)
             self._target_temp = temperature
 
@@ -294,7 +271,7 @@ class IntesisAC(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set operation mode."""
-        _LOGGER.debug("Setting %s to %s mode", self._device_type, hvac_mode)
+        _LOGGER.debug("Setting %s to %s mode", self._device_id, hvac_mode)
         if hvac_mode == HVACMode.OFF:
             self._power = False
             await self._controller.set_power_off(self._device_id)

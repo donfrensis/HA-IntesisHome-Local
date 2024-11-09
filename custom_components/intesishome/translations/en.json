@@ -3,21 +3,30 @@
     "abort": {
       "already_configured": "Device is already configured"
     },
+    "error": {
+      "cannot_connect": "Failed to connect to the device",
+      "invalid_auth": "Invalid authentication",
+      "no_devices": "No devices found",
+      "unknown": "Unexpected error"
+    },
     "step": {
       "user": {
         "data": {
-          "host": "Device IP address",
+          "host": "IP Address",
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "name": "Device Name (optional)"
         },
-        "title": "Connect to your IntesisHome Local device"
+        "description": "Set up your IntesisHome device. Optional device name will help you identify this specific device.",
+        "title": "Connect to IntesisHome"
       }
-    },
-    "error": {
-      "unknown": "An unexpected error occurred",
-      "no_devices": "No devices found on this IntesisHome controller",
-      "invalid_auth": "Invalid username or password",
-      "cannot_connect": "Failed to connect to the device"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Connectivity"
+      }
     }
   }
 }

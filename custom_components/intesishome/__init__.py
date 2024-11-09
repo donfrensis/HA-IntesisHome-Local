@@ -1,31 +1,76 @@
-# pylint: disable=duplicate-code
-"""The IntesisHome integration."""
+"""The IntesisHome Local integration."""
 from __future__ import annotations
 
+import logging
+
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_HOST, CONF_NAME, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import device_registry as dr
+
+from pyintesishome import (
+    IHAuthenticationError,
+    IHConnectionError,
+    IntesisHomeLocal,
+)
+
+_LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "intesishome"
-PLATFORMS = ["climate"]
-
+PLATFORMS = [Platform.CLIMATE, Platform.BINARY_SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up IntesisHome from a config entry."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+    
+    # Create controller for this specific device
+    try:
+        controller = IntesisHomeLocal(
+            entry.data[CONF_HOST],
+            entry.data.get("username", ""),
+            entry.data.get("password", ""),
+            loop=hass.loop,
+            websession=hass.helpers.aiohttp_client.async_get_clientsession(hass),
+        )
+        
+        await controller.poll_status()
+        
+    except (IHAuthenticationError, IHConnectionError) as ex:
+        _LOGGER.error("Failed to connect to IntesisHome device: %s", str(ex))
+        raise ConfigEntryNotReady from ex
 
-    # Correzione: utilizzare async_forward_entry_setups invece di async_forward_entry_setup
+    # Store the controller and config
+    hass.data[DOMAIN][entry.entry_id] = {
+        "controller": controller,
+        "config": entry.data,
+    }
+
+    # Register device in registry
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, controller.controller_id)},
+        manufacturer="Intesis",
+        name=entry.data.get(CONF_NAME, f"IntesisHome {controller.controller_id[-6:]}"),
+        # Prendiamo il modello dal controller se disponibile
+        model=getattr(controller, "model", None),
+        sw_version=getattr(controller, "version", None),
+        configuration_url=f"http://{entry.data[CONF_HOST]}"
+    )
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
-
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    # Correzione: utilizzare async_unload_platforms invece di async_forward_entry_unload
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     
     if unload_ok:
+        # Disconnect controller and remove data
+        controller = hass.data[DOMAIN][entry.entry_id]["controller"]
+        await controller.stop()
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok

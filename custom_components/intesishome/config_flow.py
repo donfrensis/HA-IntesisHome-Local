@@ -9,7 +9,7 @@ from pyintesishome import (
 import voluptuous as vol
 
 from homeassistant import config_entries, exceptions
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, CONF_NAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -40,19 +40,26 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if len(controller.get_devices()) == 0:
                     errors["base"] = "no_devices"
                 else:
-                    unique_id = f"intesishome_local_{controller.controller_id}".lower()
-                    name = f"IntesisHome Local {controller.name}"
-
+                    # Create unique_id from controller ID
+                    unique_id = controller.controller_id.lower()
+                    
                     await self.async_set_unique_id(unique_id)
                     self._abort_if_unique_id_configured()
 
-                    self.hass.data.setdefault(DOMAIN, {})
-                    self.hass.data[DOMAIN].setdefault("controller", {})
-                    self.hass.data[DOMAIN]["controller"][unique_id] = controller
+                    # Get custom name or use default with controller ID
+                    name = user_input.get(CONF_NAME)
+                    if not name:
+                        # Se non c'è un nome specificato, usa gli ultimi 6 caratteri del MAC
+                        name = f"IntesisHome {controller.controller_id[-6:]}"
 
                     return self.async_create_entry(
                         title=name,
-                        data=user_input,
+                        data={
+                            CONF_HOST: user_input[CONF_HOST],
+                            CONF_USERNAME: user_input[CONF_USERNAME],
+                            CONF_PASSWORD: user_input[CONF_PASSWORD],
+                            CONF_NAME: name
+                        },
                     )
 
             except IHAuthenticationError:
@@ -70,6 +77,7 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_HOST): str,
                     vol.Required(CONF_USERNAME): str,
                     vol.Required(CONF_PASSWORD): str,
+                    vol.Optional(CONF_NAME): str,
                 }
             ),
             errors=errors,
@@ -83,10 +91,8 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class CannotConnect(exceptions.HomeAssistantError):
     """Error to indicate we cannot connect."""
 
-
 class InvalidAuth(exceptions.HomeAssistantError):
     """Error to indicate there is invalid auth."""
-
 
 class NoDevices(exceptions.HomeAssistantError):
     """Error to indicate the account has no devices."""
