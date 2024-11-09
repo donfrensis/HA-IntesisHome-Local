@@ -1,13 +1,13 @@
 {
   "domain": "intesishome",
   "name": "IntesisHome Local",
-  "documentation": "https://github.com/donfrensis/ha-intesishome-local",
-  "issue_tracker": "https://github.com/donfrensis/ha-intesishome-local/issues",
-  "dependencies": [],
   "codeowners": ["@donfrensis"],
-  "requirements": ["pyintesishome==1.8.5"],
-  "iot_class": "local_push",
-  "loggers": ["pyintesishome"],
   "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/donfrensis/ha-intesishome-local",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/donfrensis/ha-intesishome-local/issues",
+  "loggers": ["pyintesishome"],
+  "requirements": ["pyintesishome==1.8.5"],
   "version": "1.1.0"
 }
