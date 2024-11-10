@@ -10,6 +10,6 @@
   "loggers": ["pyintesishome"],
   "requirements": ["pyintesishome==1.8.5"],
   "version": "1.1.4",
-  "icon": "brands/icon.png",
-  "logo": "brands/logo.png"
+  "icon": "/custom_components/intesishome_local/brands/icon.png",
+  "logo": "/custom_components/intesishome_local/brands/logo.png"
 }
