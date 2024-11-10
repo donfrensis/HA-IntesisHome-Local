@@ -31,17 +31,13 @@ class IntesisConfigFlow(config_entries.ConfigFlow, domain="intesishome_local"):
                 async with aiohttp.request('HEAD', f"http://{host}", raise_for_status=False) as response:
                     if response.status != 200:
                         _LOGGER.error("Device at %s is not responding (HTTP %s)", host, response.status)
-                        return False
-                    # Verifica aggiuntiva che sia un dispositivo Intesis
-                    async with aiohttp.request('GET', f"http://{host}/info", raise_for_status=False) as info_response:
-                        if info_response.status != 200:
-                            _LOGGER.error("Device at %s is not responding as an Intesis device", host)
-                            return False
-                        return True
+                    return False
+                    _LOGGER.info("Successfully connected to device at %s", host)
+                    return True
         except Exception as ex:
             _LOGGER.error("Failed to connect to device at %s: %s", host, str(ex))
             return False
-
+        
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle the initial step."""
         errors = {}
