@@ -9,7 +9,5 @@
   "issue_tracker": "https://github.com/donfrensis/ha-intesishome-local/issues",
   "loggers": ["pyintesishome"],
   "requirements": ["pyintesishome==1.8.5"],
-  "version": "1.1.4",
-  "icon": "/custom_components/intesishome_local/brands/icon.png",
-  "logo": "/custom_components/intesishome_local/brands/logo.png"
+  "version": "1.1.4"  
 }
