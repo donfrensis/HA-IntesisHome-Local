@@ -1,4 +1,7 @@
 # Home Assistant IntesisHome Local Integration
+[![HACS Action](https://github.com/donfrensis/HA-IntesisHome-Local/actions/workflows/hacs.yaml/badge.svg)](https://github.com/donfrensis/HA-IntesisHome-Local/actions/workflows/hacs.yaml)
+[![hassfest](https://github.com/donfrensis/HA-IntesisHome-Local/actions/workflows/hassfest_validation.yaml/badge.svg)](https://github.com/donfrensis/HA-IntesisHome-Local/actions/workflows/hassfest_validation.yaml)
+[![release](https://img.shields.io/github/v/release/donfrensis/HA-IntesisHome-Local.svg)](https://github.com/donfrensis/HA-IntesisHome-Local/releases)
 Simplified fork of the IntesisHome integration for Home Assistant
 
 *This project is a simplified fork of the original IntesisHome integration by @jnimmo. The original version supported various Intesis devices, while this fork focuses exclusively on local HTTP control for selected devices.*
