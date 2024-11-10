@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.5] - 2024-11-10
+### Fixed
+- Fixed device connectivity check during setup
+- Removed unreliable info endpoint check
+- Improved connection logging
+
 ## [1.1.3] - 2024-11-09
 ### Changed
 - Improved connectivity check to be more lightweight using HEAD requests
