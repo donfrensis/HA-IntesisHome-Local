@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.6] - 2024-11-11
+### Fixed
+- Fixed connection test logic in configuration flow
+
 ## [1.1.5] - 2024-11-10
 ### Fixed
 - Fixed device connectivity check during setup
