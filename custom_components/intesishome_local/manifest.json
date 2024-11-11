@@ -4,9 +4,9 @@
   "codeowners": ["@donfrensis"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/donfrensis/ha-intesishome-local",
+  "documentation": "https://github.com/donfrensis/HA-intesishome-local",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/donfrensis/ha-intesishome-local/issues",
+  "issue_tracker": "https://github.com/donfrensis/HA-intesishome-local/issues",
   "loggers": ["pyintesishome"],
   "requirements": ["pyintesishome==1.8.5"],
   "version": "1.1.6"  
