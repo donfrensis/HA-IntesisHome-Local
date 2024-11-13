@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import logging
-import asyncio
-from random import randrange
 from typing import NamedTuple
 
 from pyintesishome import (
@@ -45,6 +43,15 @@ from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+# Added preset positions mapping
+VANE_POSITIONS = {
+    "position1": "manual1",
+    "position2": "manual2", 
+    "position3": "manual3",
+    "position4": "manual4",
+    "position5": "manual5"
+}
+
 class SwingSettings(NamedTuple):
     """Settings for swing mode."""
     vvane: str
@@ -69,11 +76,18 @@ MAP_PRESET_MODE_TO_IH = {v: k for k, v in MAP_IH_TO_PRESET_MODE.items()}
 
 IH_SWING_STOP = "auto/stop"
 IH_SWING_SWING = "swing"
+
+# Updated swing mapping to include all positions
 MAP_SWING_TO_IH = {
     SWING_OFF: SwingSettings(vvane=IH_SWING_STOP, hvane=IH_SWING_STOP),
     SWING_BOTH: SwingSettings(vvane=IH_SWING_SWING, hvane=IH_SWING_SWING),
     SWING_HORIZONTAL: SwingSettings(vvane=IH_SWING_STOP, hvane=IH_SWING_SWING),
     SWING_VERTICAL: SwingSettings(vvane=IH_SWING_SWING, hvane=IH_SWING_STOP),
+    "position1": SwingSettings(vvane="manual1", hvane=IH_SWING_STOP),
+    "position2": SwingSettings(vvane="manual2", hvane=IH_SWING_STOP),
+    "position3": SwingSettings(vvane="manual3", hvane=IH_SWING_STOP),
+    "position4": SwingSettings(vvane="manual4", hvane=IH_SWING_STOP),
+    "position5": SwingSettings(vvane="manual5", hvane=IH_SWING_STOP),
 }
 
 MAP_STATE_ICONS = {
@@ -110,6 +124,7 @@ async def async_setup_entry(
             ],
             update_before_add=True,
         )
+
 class IntesisAC(ClimateEntity):
     """Represents an Intesishome air conditioning device."""
 
@@ -169,9 +184,16 @@ class IntesisAC(ClimateEntity):
         self._attr_supported_features |= ClimateEntityFeature.TURN_ON
         self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
 
-        # Setup swing list
+        # Setup swing list with positions
         if controller.has_vertical_swing(ih_device_id):
-            self._swing_list.append(SWING_VERTICAL)
+            self._swing_list.extend([
+                SWING_VERTICAL,
+                "position1",
+                "position2",
+                "position3", 
+                "position4",
+                "position5"
+            ])
         if controller.has_horizontal_swing(ih_device_id):
             self._swing_list.append(SWING_HORIZONTAL)
         if SWING_HORIZONTAL in self._swing_list and SWING_VERTICAL in self._swing_list:
@@ -434,19 +456,6 @@ class IntesisAC(ClimateEntity):
         return self._fan_speed
 
     @property
-    def swing_mode(self):
-        """Return current swing mode."""
-        if self._vvane == IH_SWING_SWING and self._hvane == IH_SWING_SWING:
-            swing = SWING_BOTH
-        elif self._vvane == IH_SWING_SWING:
-            swing = SWING_VERTICAL
-        elif self._hvane == IH_SWING_SWING:
-            swing = SWING_HORIZONTAL
-        else:
-            swing = SWING_OFF
-        return swing
-
-    @property
     def fan_modes(self):
         """List of available fan modes."""
         return self._fan_modes
@@ -455,6 +464,21 @@ class IntesisAC(ClimateEntity):
     def swing_modes(self):
         """List of available swing positions."""
         return self._swing_list
+
+    @property
+    def swing_mode(self):
+        """Return current swing mode."""
+        if self._vvane == IH_SWING_SWING and self._hvane == IH_SWING_SWING:
+            return SWING_BOTH
+        elif self._vvane == IH_SWING_SWING:
+            return SWING_VERTICAL
+        elif self._hvane == IH_SWING_SWING:
+            return SWING_HORIZONTAL
+        elif self._vvane in ["manual1", "manual2", "manual3", "manual4", "manual5"]:
+            for position, value in VANE_POSITIONS.items():
+                if value == self._vvane:
+                    return position
+        return SWING_OFF
 
     @property
     def available(self) -> bool:

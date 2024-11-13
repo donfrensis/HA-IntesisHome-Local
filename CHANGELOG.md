@@ -1,5 +1,12 @@
 # Changelog
 
+# Changelog
+
+## [1.1.7] - Unreleased
+### Added
+- Added support for 5 fixed vertical vane positions: position1 to position5
+- Improved swing mode control to handle both swing motion and fixed positions
+
 ## [1.1.6] - 2024-11-11
 ### Fixed
 - Fixed connection test logic in configuration flow
